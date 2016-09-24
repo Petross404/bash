@@ -10,34 +10,48 @@ toolchoice="$1"
 filename="$2"
 tool=""
 Version="0.1"
-MsgVer="depcheck $Version 
-Written by Petross404 (petross404@gmail.com)  
+MsgVer="depcheck $Version \n
+Dependency/Package finder for portage/gentoo.\n
+Written by Petross404 (petross404@gmail.com)  \n
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 "
-
+Warning="Warning! This tool is based on ldd. Don't use depcheck or\n
+ldd to figure out the dependencied of a binary you don't trust!\n
+Use objdump -p /path/file or sudo pldd <PID> instead."
 
 #check if the user entered output file 
 #and/or which tool he/she prefers.
 if [[ -z "$toolchoice" ]] && [[ -z "$filename" ]]
 then
-    echo "Please re-run and append output file or tool"
-    echo ""
-    echo "Usage: $0 [options] output file..."
-    echo "options:"
-    echo ""
-    echo "--e-file      Use e-file (PFL) to search online"
-    echo "--equery      Use equery (gentoolkit) to search locally"
-    echo "--version     $MsgVer"
+    echo -e "Please re-run and append output file or tool"
+    echo -e ""
+    echo -e "Usage: $0 [options] output file..."
+    echo -e "options:"
+    echo -e ""
+    echo -e "--e-file      Use e-file (PFL) to search online"
+    echo -e "--equery      Use equery (gentoolkit) to search locally"
+    echo -e "--version     $MsgVer
+    "
+    echo -e "$Warning"
     exit
 fi
 
-if [[ "$toolchoice" = "equery" ]]; then
+if [[ "$1" = "--equery" ]]; then
         option=" b"
-        tool="$toolchoice$option" 
-elif [[ "$toolchoice" = "e-file" ]]; then
-        tool="$toolchoice"
+        tool="equery$option" 
+elif [[ "$1" = "--e-file" ]]; then
+        tool="e-file"
+elif [[ "$1" = "--version" ]]; then
+		echo -e $MsgVer
+		exit
+elif [[ "$1" = "--warning" ]]; then
+		echo -e $Warning
+		echo -e "For more info follow this link \n
+http://ask.xmodulo.com/check-library-dependency-program-process-linux.html"
+		exit
 fi
-echo "Give me the full path and the executable"
+echo -e "Give me the full path and the executable"
+echo -e "i.e. /bin/ls : \c" 
 read exe
 
 #Keep only the libName.so and not the whole output
