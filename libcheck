@@ -67,7 +67,7 @@ else
 fi
 
 #Keep only the libName.so and not the whole output
-ldd "$2"  | grep '=' | cut -d'=' -f1 >| "$filename"
+ldd "$2" | grep '=' | cut -d'=' -f2 | cut -d'(' -f1 | cut -d'>' -f2-256 > "$filename"
 echo -e "\n$2 uses these libraries: "
 cat "$filename"
 value=`$tool $2` 
@@ -84,23 +84,7 @@ do
 	LibrariesArray["$counter"]="$lib"
 	$tool "${LibrariesArray["$counter"]}" > "$temp"
 	cat "$temp" > out
-	counter_packages=0
-	while read -r lineofpackage
-	do 
-		package="$lineofpackage"
-		TempArray["$counter_packages"]="$package"
-		if [ "$counter_packages" -gt 0 ]; then
-			if [ "${TempArray["$counter_packages"]}"!="${TempArray["$counter_packages-1"]}" ]
-			then
-				out1="${TempArray["$counter_packages"]}"
-			fi	
-			echo "$out1"		
-		fi
-	
-		cat "$tmp_pack"
-		let counter_packages="$(( $counter_packages + 1 ))"
-	done < out
-	#cat "$temp"
+	cat out
 	let counter="$(( $counter + 1 ))"
 done < "$filename"
 rm "$filename"
