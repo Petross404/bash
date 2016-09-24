@@ -70,7 +70,7 @@ do
 	lib="$line"
 	LibrariesArray["$counter"]="$lib"
 	$tool "${LibrariesArray["$counter"]}" > "$temp"
-	echo "\nIgnore possible duplicates on multilib system's"
+	echo -e "\nIgnore possible duplicates on multilib system's"
 	cat "$temp"
 	let counter="$(( $counter + 1 ))"
 done < "$filename"
