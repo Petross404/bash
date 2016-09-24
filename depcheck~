@@ -1,0 +1,52 @@
+#!/bin/bash
+#Script to check dependencies and the corresponding package.
+#Only root can run equery
+if [ $(whoami) != 'root' ]; then
+        echo "Must be root to run $0"
+        exit 1;
+fi
+declare -a equeryA=()
+toolchoice="$1"
+filename="$2"
+tool=""
+Version="0.1"
+MsgVer="depcheck $Version \n Written by Petross404 (petross404@gmail.com) \n 
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>."
+
+
+#check if the user entered output file 
+#and/or which tool he/she prefers.
+if [[ -z "$toolchoice" ]] && [[ -z "$filename" ]]
+then
+    echo "Please re-run and append output file or tool"
+    echo "Usage: $0 [options] output file..."
+    echo "options:"
+    echo ""
+    echo "--e-file      Use e-file (PFL) to search online"
+    echo "--equery      Use equery (gentoolkit) to search locally"
+    echo "Version"
+    exit
+fi
+
+if [[ "$toolchoice" = "equery" ]]; then
+        option=" b"
+        tool="$toolchoice$option" 
+elif [[ "$toolchoice" = "e-file" ]]; then
+        tool="$toolchoice"
+fi
+echo "Give me the full path and the executable"
+read exe
+
+#Keep only the libName.so and not the whole output
+ldd "$exe"  | grep '=' | cut -d'=' -f1 >| "$filename"
+cat "$filename"
+
+#Go on and process the entries in the filename
+counter=0
+while read -r line
+do
+	lib="$line"
+	equeryA["$counter"]="$lib"
+	$tool "${equeryA["$counter"]}"
+	let counter="$(( $counter + 1 ))"
+done < "$filename"
