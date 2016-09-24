@@ -6,19 +6,22 @@ if [ $(whoami) != 'root' ]; then
         exit 1;
 fi
 filename="/tmp/out"
-temp=/"tmp/temp"
+temp="/tmp/temp"
+tmp_pack="/tmp/tmp_pack"
 declare -a LibrariesArray=()
+declare -a TempArray=()
 toolchoice="$1"
 tool=""
+NULL=""
 Version="0.1"
 MsgVer="depcheck $Version \n
 Dependency/Package finder for portage/gentoo.\n
 Written by Petross404 (petross404@gmail.com)  \n
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 "
-Warning="Warning! This tool is based on ldd. Don't use depcheck or\n
-ldd to figure out the dependencied of a binary you don't trust!\n
-Use objdump -p /path/file or sudo pldd <PID> instead."
+Warning="Warning! This tool is based on ldd. Don't use depcheck or
+ldd to figure out the dependencies of a binary you don't trust!
+Use objdump -p /path/file or sudo pldd <PID> instead in that case."
 
 #check which tool the user prefers.
 if [[ -z "$toolchoice" ]]
@@ -50,16 +53,26 @@ elif [[ "$1" = "--warning" ]]; then
 http://ask.xmodulo.com/check-library-dependency-program-process-linux.html"
 		exit
 fi
-echo -e "Give me the full path and the executable"
-echo -e "i.e. /bin/ls : \c" 
-read exe
+
+if [[ "$3" != "--quiet" || "$3" != "-q" ]]; then
+		echo -e "$Warning"
+		echo -e ""
+fi
+
+if [[ -x "$2" ]]; then
+	echo "File found."
+else 
+	echo "File not found, not executable or typing error."
+	exit 1;
+fi
 
 #Keep only the libName.so and not the whole output
-ldd "$exe"  | grep '=' | cut -d'=' -f1 >| "$filename"
-echo -e "\n$exe uses these libraries: "
+ldd "$2"  | grep '=' | cut -d'=' -f1 >| "$filename"
+echo -e "\n$2 uses these libraries: "
 cat "$filename"
-$tool $exe > "$temp"
-echo -e "and the binary belongs to $( cat $temp )"
+value=`$tool $2` 
+echo -e "and the binary belongs to \c"
+echo "$value" | [ -p  /dev/stdin ] && echo "$value" || echo 'UKNOWN package'
 
 echo -e "\nWait a minute to process the libraries..."
 
@@ -70,8 +83,25 @@ do
 	lib="$line"
 	LibrariesArray["$counter"]="$lib"
 	$tool "${LibrariesArray["$counter"]}" > "$temp"
-	echo -e "\nIgnore possible duplicates on multilib system's"
-	cat "$temp"
+	cat "$temp" > out
+	counter_packages=0
+	while read -r lineofpackage
+	do 
+		package="$lineofpackage"
+		TempArray["$counter_packages"]="$package"
+		if [ "$counter_packages" -gt 0 ]; then
+			if [ "${TempArray["$counter_packages"]}"!="${TempArray["$counter_packages-1"]}" ]
+			then
+				out1="${TempArray["$counter_packages"]}"
+			fi	
+			echo "$out1"		
+		fi
+	
+		cat "$tmp_pack"
+		let counter_packages="$(( $counter_packages + 1 ))"
+	done < out
+	#cat "$temp"
 	let counter="$(( $counter + 1 ))"
 done < "$filename"
 rm "$filename"
+rm out
