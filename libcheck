@@ -72,7 +72,7 @@ echo -e "\n$2 uses these libraries: "
 cat "$filename"
 value=`$tool $2` 
 echo -e "and the binary belongs to \c"
-echo "$value" | [ "$value"=" " ] && echo "$value" || echo 'UKNOWN package'
+echo "$value" | [ -z "$value" ] && echo 'UKNOWN package' || echo "$value"
 
 echo -e "\nWait a minute to process the libraries..."
 
