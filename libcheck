@@ -40,7 +40,7 @@ then
 fi
 
 if [[ "$1" = "--equery" ]]; then
-        option=" b"
+        option=" b -e"
         tool="equery$option" 
 elif [[ "$1" = "--e-file" ]]; then
         tool="e-file"
@@ -78,14 +78,14 @@ echo -e "\nWait a minute to process the libraries..."
 
 #Go on and process the entries in the filename
 counter=0
+echo -e "" > "$temp"
 while read -r line
 do
 	lib="$line"
 	LibrariesArray["$counter"]="$lib"
-	$tool "${LibrariesArray["$counter"]}" > "$temp"
-	cat "$temp" > out
-	cat out
+	$tool "${LibrariesArray["$counter"]}" >> "$temp"
+	#cat "$temp" 
 	let counter="$(( $counter + 1 ))"
 done < "$filename"
+echo $(cat $temp) | tr " " "\n" | sort | uniq -c | sort -k2nr | awk '{printf("%s \n %s ",$2,$1)}END{print}' 
 rm "$filename"
-rm out
