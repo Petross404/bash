@@ -1,0 +1,8 @@
+emerge -v1 $(equery b  $(whereis $(objdump -p /home/petros/projects/CPlus/tracetool/build/gui/tracegui | grep NEEDED | cut -c 24-256 ) | cut -d':' -f1 ) -n | cut -d'(' -f1) -Op
+
+emerge -a1Op $(echo -e $(equery b -e  /lib64/libcap.so.2) | nl -s= | cut -d'1' -f2)
+
+echo  $(equery b -e  /lib64/libcap.so.2 ) | nl -s= | cut -d'1' -f2
+
+echo $(equery b -e /lib64/libacl.so.1) | nl --body-numbering=n -s =
+       sys-apps/acl-2.2.52-r1

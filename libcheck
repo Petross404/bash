@@ -9,6 +9,7 @@ filename="/tmp/out"
 temp="/tmp/temp"
 tmp_pack="/tmp/tmp_pack"
 declare -a LibrariesArray=()
+declare -a PackagesArray=()
 declare -a TempArray=()
 toolchoice="$1"
 tool=""
@@ -33,6 +34,7 @@ then
     echo -e ""
     echo -e "--e-file      Use e-file (PFL) to search online"
     echo -e "--equery      Use equery (gentoolkit) to search locally (slow)"
+    echo -e "--fquery      Use fquery (fquery) to search locally (faster)"
     echo -e "--version     $MsgVer
     "
     echo -e "$Warning"
@@ -42,6 +44,9 @@ fi
 if [[ "$1" = "--equery" ]]; then
         option=" b -e"
         tool="equery$option" 
+elif [[ "$1" = "--fquery" ]]; then
+		option=" b"
+		tool="fquery$option"
 elif [[ "$1" = "--e-file" ]]; then
         tool="e-file"
 elif [[ "$1" = "--version" ]]; then
@@ -51,7 +56,10 @@ elif [[ "$1" = "--warning" ]]; then
 		echo -e $Warning
 		echo -e "For more info follow this link \n
 http://ask.xmodulo.com/check-library-dependency-program-process-linux.html"
-		exit
+		exit;
+else
+		echo "Typing error";
+		exit;
 fi
 
 if [[ "$3" != "--quiet" || "$3" != "-q" ]]; then
@@ -69,23 +77,60 @@ fi
 #Keep only the libName.so and not the whole output
 ldd "$2" | grep '=' | cut -d'=' -f2 | cut -d'(' -f1 | cut -d'>' -f2-256 > "$filename"
 echo -e "\n$2 uses these libraries: "
-cat "$filename"
+echo $(<"$filename")
 value=`$tool $2` 
 echo -e "and the binary belongs to \c"
 echo "$value" | [ -z "$value" ] && echo 'UKNOWN package' || echo "$value"
 
-echo -e "\nWait a minute to process the libraries..."
-
+echo -e "\nIt will take time to process the libraries..."
+#spinner will keep a busy  cursor
+spinner()
+{
+    local pid=$1
+    local delay=0.1
+    local spinstr='|/-\'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
+}
+spin(){
+	pid=$! # Process Id of the previous running command
+	spin='-\|/'
+	i=0
+	while kill -0 $pid 2>/dev/null
+	do
+		i=$(( (i+1) %4 ))
+		printf "[%c]" "${spin:$i:1}"
+		sleep .2
+		printf "\b\b\b"
+		done
+}
 #Go on and process the entries in the filename
 counter=0
 echo -e "" > "$temp"
 while read -r line
 do
 	lib="$line"
-	LibrariesArray["$counter"]="$lib"
-	$tool "${LibrariesArray["$counter"]}" >> "$temp"
-	#cat "$temp" 
+	LibrariesArray["$counter"]="$lib"	&&  printf "\n $lib belongs to :"
+	#let packages=$( "$($tool "${LibrariesArray["$counter"]}")| nl -s= | cut -c7-" ) &
+	( echo $($tool ${LibrariesArray["$counter"]} | nl -s = | cut -c7- ) )>"$temp" &
+	spin $!
+	PackagesArray["$counter"]=$(<"$temp")
+	#PackagesArray["$counter"]=$(echo -e"$package")
+	sleep .5
+	#The [] will now be replaced by space chars
+	printf ' %0.s' {0..4}
+	echo "${PackagesArray["$counter"]}"
+	echo "${PackagesArray[@]}"
 	let counter="$(( $counter + 1 ))"
 done < "$filename"
-echo $(cat $temp) | tr " " "\n" | sort | uniq -c | sort -k2nr | awk '{printf("%s \n %s ",$2,$1)}END{print}' 
+echo "Outside loop"
+#echo "${PackagesArray[@]}" | awk '{for(i=1;i<=NF;i++)a[$i]++}END{for(o in a) printf "%s %s \n",o,a[o]}'
+
+#echo "${PackagesArray[@]}"
 rm "$filename"
