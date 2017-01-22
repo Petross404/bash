@@ -1,0 +1,2 @@
+#!/bin/bash
+scanelf -qlL -s +$1 | egrep '*.so'
