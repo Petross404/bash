@@ -77,7 +77,7 @@ fi
 #Keep only the libName.so and not the whole output
 ldd "$2" | grep '=' | cut -d'=' -f2 | cut -d'(' -f1 | cut -d'>' -f2-256 > "$filename"
 echo -e "\n$2 uses these libraries: "
-echo $(<"$filename")
+echo "$(<"$filename")"
 value=`$tool $2` 
 echo -e "and the binary belongs to \c"
 echo "$value" | [ -z "$value" ] && echo 'UKNOWN package' || echo "$value"
@@ -115,17 +115,18 @@ counter=0
 echo -e "" > "$temp"
 while read -r line
 do
+	echo "$counter"
 	lib="$line"
-	LibrariesArray["$counter"]="$lib"	&&  printf "\n $lib belongs to :"
-	#let packages=$( "$($tool "${LibrariesArray["$counter"]}")| nl -s= | cut -c7-" ) &
-	( echo $($tool ${LibrariesArray["$counter"]} | nl -s = | cut -c7- ) )>"$temp" &
+	LibrariesArray[$counter]="$lib"	&&  printf "\n $lib belongs to :"
+	PackagesArray[$counter]=( `$tool ${LibrariesArray[$counter]} | nl -s = | cut -c7- ` & )
 	spin $!
-	PackagesArray["$counter"]=$(<"$temp")
+	
+	#PackagesArray["$counter"]=$(</dev/stdout)
 	#PackagesArray["$counter"]=$(echo -e"$package")
 	sleep .5
 	#The [] will now be replaced by space chars
 	printf ' %0.s' {0..4}
-	echo "${PackagesArray["$counter"]}"
+	echo ${PackagesArray[$counter"]}
 	echo "${PackagesArray[@]}"
 	let counter="$(( $counter + 1 ))"
 done < "$filename"
