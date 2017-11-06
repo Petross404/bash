@@ -1,4 +1,5 @@
 #!/bin/bash
+<<<<<<< HEAD
 if [ -z $1  ] && [ -z $2 ]; then
 	echo "Usage: $0 OPTIONS_WITHOUT_SPACE {<-OPTIONAL} symbolname"
 	exit 1
@@ -10,3 +11,6 @@ else
 	scanelf -qlL -$1 -s +$2 | egrep -I '*.so'
 fi
 
+=======
+scanelf -qlL -s +$1 | egrep '*.so'
+>>>>>>> 9ec208cafb9e4cff7c0237db09efa606e88f851e
