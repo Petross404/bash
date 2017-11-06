@@ -10,3 +10,16 @@ echo $(equery b -e /lib64/libacl.so.1) | nl --body-numbering=n -s =
 
 #emerge all installed ebuilds with cuda USE flag. Also append = :)
 emerge -1v $(fquery -C h cuda | sed 's/^/=/' | tail -n 9 | head -n 8)
+
+ equery hasuse -pI perl
+              View all Gentoo packages that have the "perl" USE 
+flag, exluding installed packages.
+
+       USE="perl"; for PKG in $(equery -q hasuse $USE); do echo 
+$PKG: $(equery -q uses $PKG |grep $USE); done
+              This Bash one-liner uses hasuse to find a list of 
+packages that have a certain USE flag, and uses to check whether 
+the flag is enabled or disabled. Modify USE="perl" to change the 
+query.
+
+
