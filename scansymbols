@@ -13,4 +13,9 @@ fi
 
 =======
 scanelf -qlL -s +$1 | egrep '*.so'
+
+----
+   |
+nm -Dn -o --defined-only /lib/* /usr/lib64/* 2> /dev/null | grep  '\bceil\b'
+
 >>>>>>> 9ec208cafb9e4cff7c0237db09efa606e88f851e
