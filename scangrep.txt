@@ -1,0 +1,5 @@
+#This way I can grep for the function in the headers...
+find ./include/ | grep '\btime.h\b' | grep -r timer_create
+
+#after finding the header () I can equery to search it's package
+equery b header.h

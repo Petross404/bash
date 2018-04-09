@@ -21,4 +21,5 @@ packages that have a certain USE flag, and uses to check whether
 the flag is enabled or disabled. Modify USE="perl" to change the 
 query.
 
-
+This way I can emerge every package that has systemd USE flag
+emerge -1 $(printf '%s\n' `equery h systemd` '\n' | cut -f1 -d']' |  awk '{print "=" $0}' | head -n -1)
